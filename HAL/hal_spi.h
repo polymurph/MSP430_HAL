@@ -9,11 +9,18 @@
 #define HAL_HAL_SPI_H_
 
 #include <stdint.h>
+#include "msp430fr6989.h"
 
 typedef enum{
     spi_mode_MASTER = UCMST,
-    spi_mdoe_SLAVE = 0
+    spi_mode_SLAVE = 0
 }spi_mode_t;
+
+typedef enum{
+    spi_clk_source_UC0CLK = 0,
+    spi_clk_source_ACLK = UCSSEL0,
+    spi_clk_source_SMCLK = UCSSEL1
+}spi_clk_source_t;
 
 typedef enum{
     spi_data_dir_MSB_FIRST = UCMSB,
@@ -39,6 +46,8 @@ typedef enum{
 }spi_clk_mode_t;
 
 void hal_spi_init(spi_mode_t mode, spi_clk_t clk);
+
+void hal_spi_setClkSource(spi_clk_source_t source);
 
 void hal_spi_setCharLenght(spi_charLen_t len);
 

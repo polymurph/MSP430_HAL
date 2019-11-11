@@ -15,6 +15,21 @@ void hal_spi_init(spi_mode_t mode, spi_clk_t clk)
 
 }
 
+void hal_spi_setClkSource(spi_clk_source_t source)
+{
+    UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
+
+    // check if SPI is in master mode
+    if(UCB0CTLW0 & spi_mode_MASTER)
+    {
+        if(source == spi_clk_source_UC0CLK)return;
+        UCB0CTLW0 |= source;
+    }else{
+        if(source != spi_clk_source_UC0CLK)return;
+        UCB0CTLW0 |= source;
+    }
+}
+
 // Set Character length:7 Bit or 8 Bit
 void hal_spi_setCharLenght(spi_charLen_t len)
 {
