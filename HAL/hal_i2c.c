@@ -38,16 +38,20 @@ void hal_i2c_init()
 
 void hal_i2c_setClockSource(i2c_clk_src_t source)
 {
+    // unlock register
     UCB0CTLW0 |= UCSWRST;
     UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
     UCB0CTLW0 |= source;
+    // lock register
     UCB0CTLW0 &= ~UCSWRST;
 }
 
 void hal_i2c_setClockPrescaler(uint16_t prescaler)
 {
+    // unlock register
     UCB0CTLW0 |= UCSWRST;
     UCB0BRW = prescaler;
+    // lock register
     UCB0CTLW0 &= ~UCSWRST;
 }
 
