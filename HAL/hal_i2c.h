@@ -11,6 +11,8 @@
 #include <stdint.h>
 
 
+void hal_i2c_init();
+
 
 
 #endif /* HAL_HAL_I2C_H_ */
