@@ -33,22 +33,29 @@ static inline void _stop_sequence();
 
 void hal_i2c_init()
 {
-
+    // settup GPIOs for i2c mode
 }
 
 void hal_i2c_setClockSource(i2c_clk_src_t source)
 {
-
+    UCB0CTLW0 |= UCSWRST;
+    UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
+    UCB0CTLW0 |= source;
+    UCB0CTLW0 &= ~UCSWRST;
 }
 
-void hal_i2c_setClockRate(i2c_clk_rate_t rate)
+void hal_i2c_setClockPrescaler(uint16_t prescaler)
 {
-
+    UCB0CTLW0 |= UCSWRST;
+    UCB0BRW = prescaler;
+    UCB0CTLW0 &= ~UCSWRST;
 }
 
 void hal_i2c_write_Byte(uint8_t address, uint8_t data)
 {
-
+    _start_sequence(address, false);
+    _write(data);
+    _stop_sequence();
 }
 
 void hal_i2c_write(uint8_t address, const uint8_t * data, uint8_t len)

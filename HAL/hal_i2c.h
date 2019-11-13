@@ -19,12 +19,14 @@ typedef enum{
 }i2c_mode_t;
 
 typedef enum{
-    i2c_clk_src_
+    i2c_clk_src_UCLKI = 0
+    i2c_clk_src_ACLK = UCSSEL0,
+    i2c_clk_src_SMCLK = UCSSEL1
 }i2c_clk_src_t;
 
 typedef enum{
-    i2c_clk_rate_
-}i2c_clk_rate_t;
+    i2c_clk_presc_
+}i2c_clk_presc_t;
 
 void hal_i2c_init(i2c_mode_t mode);
 
