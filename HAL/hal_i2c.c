@@ -31,9 +31,26 @@ static inline void _stop_sequence();
 
 }
 
-void hal_i2c_init()
+void hal_i2c_init(i2c_mode_t mode, i2c_clk_src_t source)
 {
     // settup GPIOs for i2c mode
+
+    // unlock register
+    UCB0CTLW0 |= UCSWRST;
+
+    // set master or slave mode
+    UCB0CTLW0 &= ~UCMST;
+    UCB0CTLW0 |= mode;
+
+    // set eUSCI_B module to i2c functionality
+    UCB0CTLW0 |= UCMODE_3;
+
+    // select clock source
+    UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
+    UCB0CTLW0 |= source;
+
+    // lock register
+    UCB0CTLW0 &= ~UCSWRST;
 }
 
 void hal_i2c_setClockSource(i2c_clk_src_t source)

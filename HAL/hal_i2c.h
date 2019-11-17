@@ -14,8 +14,8 @@
 #include "msp430fr6989.h"
 
 typedef enum{
-    i2c_mode_MASTER,
-    i2c_mode_SLAVE
+    i2c_mode_MASTER = UCMST,
+    i2c_mode_SLAVE = 0
 }i2c_mode_t;
 
 typedef enum{
