@@ -11,90 +11,130 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+static inline void _stop_sequence()
+{
+    UCB1CTLW0 |= UCTXSTP;
+    while(!(UCB1CTLW0 & UCTXSTP));
+}
+
+static inline void _poll_busy()
+{
+    while(UCB1STATW & UCBBUSY);
+}
+
 static inline void _start_sequence(uint8_t address,bool read)
 {
+    UCB1IFG = 0;    // clear old flags
+    UCB1I2CSA = address;    // set slave address
+    UCB1CTLW0 |= (read) ? (UCTR) : (0); // set send/recive mode
+    UCB1CTLW0 |= UCTXSTT;   // generate start condition
+    while(UCB1CTLW0 & UCTXSTT); // wait until start condition is sent
 
+    // check for error
+    if(UCB1IFG & UCNACKIFG){
+        _stop_sequence();
+        return;
+    }
 }
 
-static inline void _write(uint8_t data)
+static inline bool _write_tx_buf(uint8_t data)
 {
+    UCB1TXBUF = data;
+    while(!(UCB1IFG & UCTXIFG0));   // wait for transmit completion
 
+    // check for error
+    if(UCB1IFG & UCNACKIFG){
+        _stop_sequence();
+        return true;
+    }
+    return false;
 }
 
-static inline uint8_t _read();
+static inline uint8_t _read_rx_buf()
 {
-
+    while(!(UCB1IFG & UCRXIFG0));
+    return UCB1RXBUF;
 }
 
-static inline void _stop_sequence();
-{
 
-}
-
-void hal_i2c_init(i2c_mode_t mode, i2c_clk_src_t source)
+void hal_i2c_init(i2c_mode_t i2c_mode, i2c_clk_src_t source, uint16_t prescaler)
 {
     // settup GPIOs for i2c mode
+    P4DIR &= ~0x03; // SDA and SCL as output
+    P4SEL0 &= ~0x03;
+    P4SEL1 |= 0x03;
 
     // unlock register
-    UCB0CTLW0 |= UCSWRST;
+    UCB1CTLW0 |= UCSWRST;
 
     // set master or slave mode
-    UCB0CTLW0 &= ~UCMST;
-    UCB0CTLW0 |= mode;
+    UCB1CTLW0 &= ~UCMST;
+    UCB1CTLW0 |= i2c_mode;
 
     // set eUSCI_B module to i2c functionality
-    UCB0CTLW0 |= UCMODE_3;
+    UCB1CTLW0 |= UCMODE_3;
 
     // select clock source
-    UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
-    UCB0CTLW0 |= source;
+    UCB1CTLW0 &= ~(UCSSEL0 | UCSSEL1);
+    UCB1CTLW0 |= source;
+
+    // set rescaler
+    UCB1BRW = prescaler;
 
     // lock register
-    UCB0CTLW0 &= ~UCSWRST;
+    UCB1CTLW0 &= ~UCSWRST;
 }
 
 void hal_i2c_setClockSource(i2c_clk_src_t source)
 {
     // unlock register
-    UCB0CTLW0 |= UCSWRST;
-    UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
-    UCB0CTLW0 |= source;
+    UCB1CTLW0 |= UCSWRST;
+    UCB1CTLW0 &= ~(UCSSEL0 | UCSSEL1);
+    UCB1CTLW0 |= source;
     // lock register
-    UCB0CTLW0 &= ~UCSWRST;
+    UCB1CTLW0 &= ~UCSWRST;
 }
 
 void hal_i2c_setClockPrescaler(uint16_t prescaler)
 {
     // unlock register
-    UCB0CTLW0 |= UCSWRST;
-    UCB0BRW = prescaler;
+    UCB1CTLW0 |= UCSWRST;
+    UCB1BRW = prescaler;
     // lock register
-    UCB0CTLW0 &= ~UCSWRST;
+    UCB1CTLW0 &= ~UCSWRST;
 }
 
 void hal_i2c_write_Byte(uint8_t address, uint8_t data)
 {
     _start_sequence(address, false);
-    _write(data);
+    _write_tx_buf(data);
     _stop_sequence();
 }
 
-void hal_i2c_write(uint8_t address, const uint8_t * data, uint8_t len)
+bool hal_i2c_write(uint8_t address, const uint8_t * data, uint8_t len)
 {
     uint8_t i = 0;
-    _start_sequence(address, false);
+    bool buf = 0;
+    if(_start_sequence(address, false)) return;
     for(i = 0; i < len; i++){
-        _write(data[i]);
+        if(_write_tx_buf(data[i])) return true;
     }
+
     _stop_sequence();
+    return false;
 }
 
 uint8_t hal_i2c_read_Byte(uint8_t address)
 {
     uint8_t buf = 0;
     _start_sequence(address, true);
-    buf = _read();
+    buf = _read_rx_buf();
     _stop_sequence();
     return buf;
+}
+
+void hal_i2c_read(uint8_t address, uint8_t * data, uint8_t len)
+{
+
 }
 
