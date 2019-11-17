@@ -15,6 +15,15 @@ void hal_spi_init(spi_mode_t mode, spi_clk_t clk)
 
 }
 
+void hal_spi_pin(spi_pin_mode_t pin)
+{
+    UCB0CTLW0 &= ~(UCMODE0 | UCMODE1);
+    UCB0CTLW0 |= pin;
+
+}
+
+
+
 void hal_spi_setClkSource(spi_clk_source_t source)
 {
     UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
@@ -48,13 +57,21 @@ uint8_t hal_spi_trx()
 
 }
 
-void hal_spi_tx()
+void hal_spi_tx(unsigned char data)
 {
+    //TODO chip select auf low ziehen
 
+    UCA0TXBUF = data;         //sende Wert
+    while(UCA0STAT & UCBUSY); //wartet bis Wert gesendet wird
+
+    //TODO chip select uf high ziehen
 }
 
-void hal_spi_rx()
+void hal_spi_rx(unsigned char rx)
 {
+
+    while(UCA0STAT & UCBUSY);//TX buffer fertig?
+    rcv = UCA0RXBUF;
 
 }
 
