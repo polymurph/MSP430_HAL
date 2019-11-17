@@ -17,12 +17,14 @@ static inline void _stop_sequence()
     while(!(UCB1CTLW0 & UCTXSTP));
 }
 
+#if 0
 static inline void _poll_busy()
 {
     while(UCB1STATW & UCBBUSY);
 }
+#endif
 
-static inline void _start_sequence(uint8_t address,bool read)
+static inline bool _start_sequence(uint8_t address, bool read)
 {
     UCB1IFG = 0;    // clear old flags
     UCB1I2CSA = address;    // set slave address
@@ -33,8 +35,9 @@ static inline void _start_sequence(uint8_t address,bool read)
     // check for error
     if(UCB1IFG & UCNACKIFG){
         _stop_sequence();
-        return;
+        return true;
     }
+    return false;
 }
 
 static inline bool _write_tx_buf(uint8_t data)
@@ -78,7 +81,7 @@ void hal_i2c_init(i2c_mode_t i2c_mode, i2c_clk_src_t source, uint16_t prescaler)
     UCB1CTLW0 &= ~(UCSSEL0 | UCSSEL1);
     UCB1CTLW0 |= source;
 
-    // set rescaler
+    // set prescaler
     UCB1BRW = prescaler;
 
     // lock register
@@ -114,23 +117,20 @@ void hal_i2c_write_Byte(uint8_t address, uint8_t data)
 bool hal_i2c_write(uint8_t address, const uint8_t * data, uint8_t len)
 {
     uint8_t i = 0;
-    bool buf = 0;
-    if(_start_sequence(address, false)) return;
+    if(_start_sequence(address, false)) return true;
     for(i = 0; i < len; i++){
         if(_write_tx_buf(data[i])) return true;
     }
-
     _stop_sequence();
     return false;
 }
 
-uint8_t hal_i2c_read_Byte(uint8_t address)
+bool hal_i2c_read_Byte(uint8_t address, uint8_t *byte)
 {
-    uint8_t buf = 0;
-    _start_sequence(address, true);
-    buf = _read_rx_buf();
+    if(_start_sequence(address, true)) return true;
+    *byte = _read_rx_buf();
     _stop_sequence();
-    return buf;
+    return false;
 }
 
 void hal_i2c_read(uint8_t address, uint8_t * data, uint8_t len)
