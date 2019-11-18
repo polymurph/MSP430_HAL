@@ -7,19 +7,19 @@
 #include "hal_spi.h"
 #include "msp430fr6989.h"
 
-void hal_spi_init(spi_mode_t mode, spi_clk_t clk)
+void hal_spi_init(spi_mode_t mode, spi_clk_t clk, spi_pin_mode_t pin)
 {
     UCB0CTLW0 &= ~UCMST;
     UCB0CTLW0 |= mode;
 
-
+    UCB0CTLW0 &= ~(UCMODE0 | UCMODE1);
+    UCB0CTLW0 |= pin;
 }
 
 void hal_spi_pin(spi_pin_mode_t pin)
 {
     UCB0CTLW0 &= ~(UCMODE0 | UCMODE1);
     UCB0CTLW0 |= pin;
-
 }
 
 
@@ -59,12 +59,12 @@ uint8_t hal_spi_trx()
 
 void hal_spi_tx(unsigned char data)
 {
-    //TODO chip select auf low ziehen
+    //TODO chip select pulling on low
 
-    UCA0TXBUF = data;         //sende Wert
-    while(UCA0STAT & UCBUSY); //wartet bis Wert gesendet wird
+    UCA0TXBUF = data;         //transmit value
+    while(UCA0STAT & UCBUSY); //wait until value is transmitted
 
-    //TODO chip select uf high ziehen
+    //TODO chip select pulling on high
 }
 
 void hal_spi_rx(unsigned char rx)
