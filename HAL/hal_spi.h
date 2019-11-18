@@ -51,7 +51,7 @@ typedef enum{
     spi_clk_mode_3 = UCCKPL | UCCKPH //Rising Edge Tx, Falling Edge Rx, Polarity High
 }spi_clk_mode_t;
 
-void hal_spi_init(spi_mode_t mode, spi_clk_t clk);
+void hal_spi_init(spi_mode_t mode, spi_clk_t clk, spi_pin_mode_t pin);
 
 void hal_spi_pin(spi_pin_mode_t pin);
 
@@ -59,11 +59,11 @@ void hal_spi_setClkSource(spi_clk_source_t source);
 
 void hal_spi_setCharLenght(spi_charLen_t len);
 
-void hal_spi_setClockMode(spi_polarity_t mode);
+void hal_spi_setClockMode(spi_clk_mode_t mode);
 
-uint8_t hal_spi_trx(unsigned char rx);
+uint8_t hal_spi_trx(uint8_t data);
 
-void hal_spi_tx(unsigned char data);
+void hal_spi_tx(uint8_t data);
 
 uint8_t hal_spi_rx(void);
 

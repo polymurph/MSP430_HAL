@@ -52,9 +52,13 @@ void hal_spi_setClockMode(spi_clk_mode_t mode)
     UCB0CTLW0 |= mode;
 }
 
-uint8_t hal_spi_trx()
+uint8_t hal_spi_trx(uint8_t data)
 {
+      UCA0IFG = 0;
+      UCA0TXBUF = data;
+      while(UCA0IFG & UCRXIFG);//data received?
 
+      return UCA0RXBUF;
 }
 
 //chip select procedure must be done by user
