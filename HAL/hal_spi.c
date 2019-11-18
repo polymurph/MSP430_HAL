@@ -57,22 +57,20 @@ uint8_t hal_spi_trx()
 
 }
 
-void hal_spi_tx(unsigned char data)
+//chip select procedure must be done by user
+void hal_spi_tx(uint8_t data)
 {
-    //TODO chip select pulling on low
-
     UCA0TXBUF = data;         //transmit value
-    while(UCA0STAT & UCBUSY); //wait until value is transmitted
-
-    //TODO chip select pulling on high
+    while(UCA0IFG & UCTXIFG); //wait until value is transmitted
 }
 
-void hal_spi_rx(unsigned char rx)
+uint8_t hal_spi_rx(void)
 {
+    UCA0IFG = 0;
+    UCA0TXBUF = 0x00;
+    while(UCA0IFG & UCRXIFG);//data received?
 
-    while(UCA0STAT & UCBUSY);//TX buffer fertig?
-    rcv = UCA0RXBUF;
-
+    return UCA0RXBUF;
 }
 
 void hal_spi_trx_block(const uint8_t* txblock, uint8_t* rxblock)

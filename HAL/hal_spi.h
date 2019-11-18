@@ -65,7 +65,7 @@ uint8_t hal_spi_trx(unsigned char rx);
 
 void hal_spi_tx(unsigned char data);
 
-void hal_spi_rx();
+uint8_t hal_spi_rx(void);
 
 void hal_spi_trx_block(const uint8_t* txblock, uint8_t* rxblock);
 
