@@ -81,7 +81,8 @@ void hal_clk_config_DCO(clk_dco_freq_t freq);
 
 void hal_clk_config_ACLK(clk_ACLK_src_t source, clk_presc_t prescaler, bool enable);
 
+void hal_clk_config_MCLK(clk_MCLK_src_t source, clk_presc_t prescaler, bool enable);
 
-
+void hal_clk_config_SMCLK(clk_SMCLK_src_t source, clk_presc_t prescaler, bool enable);
 
 #endif /* HAL_HAL_CLK_H_ */
