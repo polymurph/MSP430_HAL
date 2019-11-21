@@ -85,10 +85,6 @@ void hal_clk_config_DCO(clk_dco_freq_t freq)
    _lock_registers();
 }
 
-
-
-
-
 void hal_clk_config_ACLK(clk_ACLK_src_t source, clk_presc_t prescaler, bool enable)
 {
     _unlock_registers();
@@ -101,23 +97,53 @@ void hal_clk_config_ACLK(clk_ACLK_src_t source, clk_presc_t prescaler, bool enab
     CSCTL3 &= ~(uint16_t)(0x7 << 8);
     CSCTL3 |= (uint16_t)(prescaler << 8);
 
+    if(enable) {
+        CSCTL6 |= ACLKREQEN;
+    } else {
+        CSCTL6 &= ~ACLKREQEN;
+    }
+
     _lock_registers();
 }
 
-void hal_clk_enable_ACLK(bool enable)
+void hal_clk_config_MCLK(clk_MCLK_src_t source, clk_presc_t prescaler, bool enable)
 {
     _unlock_registers();
-    if(enable){
 
+    // select source
+    CSCTL2 &= ~(uint16_t)(0x7);
+    CSCTL2 |= source;
+
+    // set prescaler
+    CSCTL3 &= ~(uint16_t)(0x7);
+    CSCTL3 |= (uint16_t)(prescaler);
+
+    if(enable) {
+        CSCTL6 |= MCLKREQEN;
     } else {
-
+        CSCTL6 &= ~MCLKREQEN;
     }
     _lock_registers();
 }
 
-void hal_clk_select_ACLK_source(clk_ACLK_src_t source)
+void hal_clk_config_SMCLK(clk_SMCLK_src_t source, clk_presc_t prescaler, bool enable)
 {
+    _unlock_registers();
 
+    // select source
+    CSCTL2 &= ~(uint16_t)(0x7 << 4);
+    CSCTL2 |= source << 4;
+
+    // set prescaler
+    CSCTL3 &= ~(uint16_t)(0x7 << 4);
+    CSCTL3 |= (uint16_t)(prescaler << 4);
+
+    if(enable) {
+        CSCTL6 |= SMCLKREQEN;
+    } else {
+        CSCTL6 &= ~SMCLKREQEN;
+    }
+    _lock_registers();
 }
 
 

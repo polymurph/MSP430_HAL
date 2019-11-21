@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "HAL/msp430fr6989.h"
+
 typedef enum{
     clk_error_NO_ERROR = 0,
     clk_error_LFXT_FAULT,
@@ -18,10 +20,30 @@ typedef enum{
 
 }clk_error_t;
 
+// find out all possible clk sources
 typedef enum{
     clk_ACLK_src_LFXT,
-    clk_ACLK_src_HFXT
+    clk_ACLK_src_VLO,
+    clk_ACLK_src_LFMOD
 }clk_ACLK_src_t;
+
+typedef enum{
+    clk_MCLK_src_LFXT,
+    clk_MCLK_src_VLO,
+    clk_MCLK_src_LFMOD,
+    clk_MCLK_src_DCO,
+    clk_MCLK_src_MOD,
+    clk_MCLK_src_HFXT
+}clk_MCLK_src_t;
+
+typedef enum{
+    clk_SMCLK_src_LFXT,
+    clk_SMCLK_src_VLO,
+    clk_SMCLK_src_LFMOD,
+    clk_SMCLK_src_DCO,
+    clk_SMCLK_src_MOD,
+    clk_SMCLK_src_HFXT
+}clk_SMCLK_src_t;
 
 typedef enum{
     clk_dco_freq_1_MHz = 0,
@@ -50,6 +72,16 @@ typedef enum{
     drive_strenght_INCREASED = 1,
     drive_strenght_MAX = 3
 }drive_strenght_t;
+
+clk_error_t hal_clk_config_LFXT(drive_strenght_t strength ,bool bypass, bool enable);
+
+clk_error_t hal_clk_config_HFXT(drive_strenght_t strength ,bool bypass, bool enable);
+
+void hal_clk_config_DCO(clk_dco_freq_t freq);
+
+void hal_clk_config_ACLK(clk_ACLK_src_t source, clk_presc_t prescaler, bool enable);
+
+
 
 
 #endif /* HAL_HAL_CLK_H_ */
