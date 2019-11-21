@@ -2,7 +2,7 @@
  * hal_clk.c
  *
  *  Created on: Nov 21, 2019
- *      Author: Edwin
+ *      Author: Edwin Koch
  */
 #include "HAL/hal_clk.h"
 #include "HAL/msp430fr6989.h"
@@ -44,7 +44,45 @@ clk_error_t hal_clk_config_LFXT(drive_strenght_t strength ,bool bypass, bool ena
 
     if(CSCTL5 & LFXTOFF) return clk_error_LFXT_FAULT;
 
-    return clk_error_NO_ERROR
+    return clk_error_NO_ERROR;
+}
+
+clk_error_t hal_clk_config_HFXT(drive_strenght_t strength ,bool bypass, bool enable)
+{
+    _unlock_registers();
+
+    // drive strength
+    CSCTL4 &= ~HFXTDRIVE_3;
+    CSCTL4 |= (uint16_t)(strength << 14);
+
+
+    if(bypass){
+        CSCTL4 |= HFXTBYPASS;
+    } else {
+        CSCTL4 &= ~HFXTBYPASS;
+    }
+
+    if(enable){
+        CSCTL4 &= ~HFXTOFF;
+    } else {
+        CSCTL4 |= HFXTOFF;
+    }
+    _lock_registers();
+
+    if(CSCTL5 & HFXTOFF) return clk_error_LFXT_FAULT;
+
+    return clk_error_NO_ERROR;
+}
+
+void hal_clk_config_DCO(clk_dco_freq_t freq)
+{
+   _unlock_registers();
+
+   // set frequency
+   CSCTL1 &= ~(DCOFSEL2 | DCOFSEL1 | DCOFSEL0 | DCORSEL);
+   CSCTL1 |= freq;
+
+   _lock_registers();
 }
 
 
