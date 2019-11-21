@@ -90,13 +90,12 @@ static inline uint8_t _read_rx_buf()
 
 static inline void _gpio_settup()
 {
-    //PM5CTL0 &= ~LOCKLPM5;
-
-    PM5CTL0 |= LOCKLPM5;
+    PM5CTL0 &= ~LOCKLPM5;
 
     // settup GPIOs for i2c mode
-    P4DIR &= ~0x03; // SDA and SCL as output
-    P4SEL0 &= ~0x03;
+    // P4DIR &= ~0x03; // SDA and SCL as output
+    //P4SEL0 &= ~0x03;
+    P4SEL0 |= 0x03;
     P4SEL1 |= 0x03;
 }
 
@@ -128,7 +127,6 @@ void hal_i2c_init(i2c_mode_t i2c_mode, i2c_clk_src_t source, uint16_t bitrate)
     UCB1BRW = bitrate;
 
     UCB1CTLW1 = UCASTP_2;
-
 
     // erase reset condition -> release for operation
     UCB1CTLW0 &= ~UCSWRST;
