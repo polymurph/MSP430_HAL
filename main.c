@@ -22,7 +22,7 @@ int main(void)
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
 	
 
-	hal_spi_init(spi_mode_MASTER,spi_clk_mode_1, spi_mode_3PIN, spi_data_dir_MSB_FIRST);
+	hal_spi_init(spi_mode_MASTER, spi_clk_source_ACLK, spi_clk_mode_1, 0,spi_mode_3PIN, spi_data_dir_MSB_FIRST);
 
 	chip_select(true);
 	hal_spi_trx(0xAA);
