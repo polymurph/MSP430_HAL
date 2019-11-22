@@ -96,8 +96,10 @@ void hal_clk_config_SMCLK(clk_SMCLK_src_t   source,
                           bool              request_enable,
                           bool              enable);
 
+// TODO: find better name
 void hal_clk_output_MCLK(bool enable);
 
+// TODO: find better name
 void hal_clk_output_ACLK(bool enable);
 
 #endif /* HAL_HAL_CLK_H_ */
