@@ -19,10 +19,11 @@ void chip_select(bool select)
 
 int main(void)
 {
+    uint8_t i = 0;
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
 	
+	hal_spi_init(spi_mode_MASTER, spi_clk_source_SMCLK, spi_clk_mode_1, 1, true);
 
-	hal_spi_init(spi_mode_MASTER, spi_clk_source_ACLK, spi_clk_mode_1, 0,spi_mode_3PIN, spi_data_dir_MSB_FIRST);
 
 	chip_select(true);
 	hal_spi_trx(0xAA);
@@ -30,7 +31,8 @@ int main(void)
 
 	while(1)
 	{
-
+	    hal_spi_trx(0xAA);
+	    for(i = 0; i < 0xFF; i++);
 	}
 
 	return 0;

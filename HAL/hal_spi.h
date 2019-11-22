@@ -9,6 +9,7 @@
 #define HAL_HAL_SPI_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 #include "msp430fr6989.h"
 
 typedef enum{
@@ -33,16 +34,6 @@ typedef enum{
     spi_data_dir_LSB_FIRST = 0
 }spi_data_dir_t;
 
-typedef enum{
-    spi_clk_1MHZ,
-    spi_clk_8MHz,
-}spi_clk_t;
-
-typedef enum{
-    spi_charLen_7BIT = UC7BIT,
-    spi_charLen_8BIT = 0
-}spi_charLen_t;
-
 // TODO: choose better names
 typedef enum{
     spi_clk_mode_0 = 0, //Rising Edge Tx, Falling Edge Rx, Polarity Low
@@ -51,15 +42,11 @@ typedef enum{
     spi_clk_mode_3 = UCCKPL | UCCKPH //Rising Edge Tx, Falling Edge Rx, Polarity High
 }spi_clk_mode_t;
 
-void hal_spi_init(spi_mode_t mode,spi_clk_source_t source, spi_clk_t clk, uint16_t prescaler, spi_pin_mode_t pin, spi_data_dir_t direction);
-
-void hal_spi_pin(spi_pin_mode_t pin);
-
-void hal_spi_setClkSource(spi_clk_source_t source);
-
-void hal_spi_setCharLenght(spi_charLen_t len);
-
-void hal_spi_setClockMode(spi_clk_mode_t mode);
+bool hal_spi_init(spi_mode_t        mode,
+                  spi_clk_source_t  clk_source,
+                  spi_clk_mode_t    clk_mode,
+                  uint16_t          prescaler,
+                  bool    MSB_first);
 
 uint8_t hal_spi_trx(uint8_t data);
 
@@ -67,7 +54,9 @@ void hal_spi_tx(uint8_t data);
 
 uint8_t hal_spi_rx(void);
 
-void hal_spi_trx_block(const uint8_t* txblock, uint8_t* rxblock);
+void hal_spi_trx_block(const uint8_t*   txblock,
+                       uint8_t*         rxblock,
+                       uint8_t          len);
 
 
 #endif /* HAL_HAL_SPI_H_ */

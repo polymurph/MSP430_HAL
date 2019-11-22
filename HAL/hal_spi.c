@@ -6,104 +6,84 @@
  */
 #include "hal_spi.h"
 #include <stdint.h>
+#include <stdbool.h>
 #include "msp430fr6989.h"
 
-void hal_spi_init(spi_mode_t mode, spi_clk_source_t clk_source, spi_clk_t clk, uint16_t prescaler, spi_pin_mode_t pin, spi_data_dir_t direction)
+
+static inline void _gpio_setup(void)
 {
-    //Master or Slave
+    PM5CTL0 &= LOCKLPM5;
+    // MOSI
+    P1DIR |= 0x40;
+    P1SEL0 |= 0x40;
+    P1SEL1 &= ~0x40;
+
+    // MISO
+    P1DIR &= ~0x80;
+    P1SEL0 |= 0x80;
+    P1SEL1 &= ~0x80;
+
+    // CLK
+    P1DIR |= 0x10;
+    P1SEL0 |= 0x10;
+    P1SEL1 &= ~0x10;
+}
+
+bool hal_spi_init(spi_mode_t        mode,
+                  spi_clk_source_t  clk_source,
+                  spi_clk_mode_t    clk_mode,
+                  uint16_t          prescaler,
+                  bool    MSB_first)
+{
+    // enable register modification
+    UCB0CTLW0 |= UCSWRST;
+
+    // 3 pin spi mode
+    UCB0CTLW0 &= ~(UCMODE0 | UCMODE1);
+
+    // set master or slave mode
     UCB0CTLW0 &= ~UCMST;
     UCB0CTLW0 |= mode;
 
-    //Clock Source
-    UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
-    //Check if SPI is in master mode
-    if(UCB0CTLW0 & spi_mode_MASTER)
-      {
-       if(clk_source == spi_clk_source_UC0CLK)return;
-          UCB0CTLW0 |= clk_source;
-      }
-    else
-    {
-      if(clk_source != spi_clk_source_UC0CLK)return;
-         UCB0CTLW0 |= clk_source;
-    }
-
-    //Clock Prescaler
-    UCB0CTLW0 |= UCSWRST; //Software Reset enable
-    UCB0BRW   |= prescaler;
-    UCB0CTLW0 &= ~UCSWRST; //Software Reset disable
-
-
-    //Phase and Polarity
-    UCB0CTLW0 &= ~(UCCKPL | UCCKPH);
-    UCB0CTLW0 |= clk;
-
-    //3 or 4 Pin
-    UCB0CTLW0 &= ~(UCMODE0 | UCMODE1);
-    UCB0CTLW0 |= pin;
-
     //MSB or LSB first
     UCB0CTLW0 &= ~UCMSB;
-    UCB0CTLW0 |= direction;
+    UCB0CTLW0 |= (MSB_first) ? (UCMSB) : (0);
 
+    // set clock prescaler
+    UCB0BRW = prescaler;
 
-        //MOSI (Port 1.6)
-        P1DIR |= 0x04;
-        P1SEL0 |= 0x04;
-        P1SEL1 &= ~0x04;
-
-        //Clock (Port 1.4)
-        P1DIR |= 0x10;
-        P1SEL0 |= 0x10;  //primary module function
-        P1SEL1 &= ~0x10; //primary module function
-
-        //Chip-Select(Port 2.4)
-        P2SEL0  &= ~0x10;       //select normal I/O functionality
-        P2SEL1 &= ~0x10;     //select normal I/O functionality
-        P2DIR |= 0x10;         //set as output
-}
-
-void hal_spi_pin(spi_pin_mode_t pin)
-{
-    UCB0CTLW0 &= ~(UCMODE0 | UCMODE1);
-    UCB0CTLW0 |= pin;
-}
-
-
-
-void hal_spi_setClkSource(spi_clk_source_t source)
-{
-    UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
-
-    // check if SPI is in master mode
-    if(UCB0CTLW0 & spi_mode_MASTER)
-    {
-        if(source == spi_clk_source_UC0CLK)return;
-        UCB0CTLW0 |= source;
-    }else{
-        if(source != spi_clk_source_UC0CLK)return;
-        UCB0CTLW0 |= source;
-    }
-}
-
-// Set Character length:7 Bit or 8 Bit
-void hal_spi_setCharLenght(spi_charLen_t len)
-{
-    UCB0CTLW0 &= ~UC7BIT;
-    UCB0CTLW0 |= len;
-}
-
-void hal_spi_setClockMode(spi_clk_mode_t mode)
-{
+    // set clock phase and polarity
     UCB0CTLW0 &= ~(UCCKPL | UCCKPH);
-    UCB0CTLW0 |= mode;
+    UCB0CTLW0 |= clk_mode;
+
+    // set 8 bit mode
+    UCB0CTLW0 &= ~UC7BIT;
+
+    //set clock source
+    UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
+    if(mode){
+        // slave mode
+        if(clk_source != spi_clk_source_UC0CLK)return true;
+             UCB0CTLW0 |= clk_source;
+    } else {
+        // master mode
+        if(clk_source == spi_clk_source_UC0CLK)return true;
+             UCB0CTLW0 |= clk_source;
+    }
+
+    _gpio_setup();
+
+    // disable register modification
+    UCB0CTLW0 &= ~UCSWRST;
+    return false;
 }
 
 uint8_t hal_spi_trx(uint8_t data)
 {
       UCB0IFG = 0;
       UCB0TXBUF = data;
-      while(UCB0IFG & UCRXIFG);//data received?
+      // poll for receive completion
+      while(UCB0IFG & UCRXIFG);
 
       return UCB0RXBUF;
 }
@@ -124,7 +104,11 @@ uint8_t hal_spi_rx(void)
     return UCB0RXBUF;
 }
 
-void hal_spi_trx_block(const uint8_t* txblock, uint8_t* rxblock)
+void hal_spi_trx_block(const uint8_t* txblock, uint8_t* rxblock, uint8_t len)
 {
+    uint8_t i = 0;
 
+    for(i = 0; i < len; i++){
+        rxblock[i] = hal_spi_trx(txblock[i]);
+    }
 }
