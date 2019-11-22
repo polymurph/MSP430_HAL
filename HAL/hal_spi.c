@@ -5,15 +5,39 @@
  *      Author: timon
  */
 #include "hal_spi.h"
+#include <stdint.h>
 #include "msp430fr6989.h"
 
-void hal_spi_init(spi_mode_t mode, spi_clk_t clk, spi_pin_mode_t pin)
+void hal_spi_init(spi_mode_t mode, spi_clk_t clk, spi_pin_mode_t pin, spi_data_dir_t direction)
 {
     UCB0CTLW0 &= ~UCMST;
     UCB0CTLW0 |= mode;
 
+
+
     UCB0CTLW0 &= ~(UCMODE0 | UCMODE1);
     UCB0CTLW0 |= pin;
+
+    UCB0CTLW0 &= ~UCMSB;
+    UCB0CTLW0 |= direction;
+
+
+        //MOSI (Port 1.6)
+        P1DIR |= 0x04;
+        P1SEL0 |= 0x04;
+        P1SEL1 &= ~0x04;
+
+
+        //Clock (Port 1.4)
+        P1DIR |= 0x10;
+        P1SEL0 |= 0x10;  //primary module function
+        P1SEL1 &= ~0x10; //primary module function
+
+        //Chip-Select(Port 2.4)
+        P2SEL0  &= ~0x10;       //select normal I/O functionality
+        P2SEL1 &= ~0x10;     //select normal I/O functionality
+        P2DIR |= 0x10;         //set as output
+
 }
 
 void hal_spi_pin(spi_pin_mode_t pin)
