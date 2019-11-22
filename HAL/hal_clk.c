@@ -12,12 +12,14 @@
 
 static inline void _unlock_registers()
 {
-    CSCTL0 |= CSKEY;
+    CSCTL0 = CSKEY;
+    while(!(CSCTL0 & CSKEY));
 }
 
 static inline void _lock_registers()
 {
-    CSCTL0 &= ~CSKEY;
+    // TODO: find out how to disable write permission
+    CSCTL0 |= CSCTL0_H;
 }
 
 clk_error_t hal_clk_config_LFXT(drive_strenght_t strength ,bool bypass, bool enable)
@@ -106,7 +108,9 @@ void hal_clk_config_ACLK(clk_ACLK_src_t source, clk_presc_t prescaler, bool enab
     _lock_registers();
 }
 
-void hal_clk_config_MCLK(clk_MCLK_src_t source, clk_presc_t prescaler, bool enable)
+void hal_clk_config_MCLK(clk_MCLK_src_t     source,
+                         clk_presc_t        prescaler,
+                         bool               request_enable)
 {
     _unlock_registers();
 
@@ -117,8 +121,15 @@ void hal_clk_config_MCLK(clk_MCLK_src_t source, clk_presc_t prescaler, bool enab
     // set prescaler
     CSCTL3 &= ~(uint16_t)(0x7);
     CSCTL3 |= (uint16_t)(prescaler);
+#if 0
+    if(enable){
 
-    if(enable) {
+    } else {
+
+    }
+#endif
+
+    if(request_enable) {
         CSCTL6 |= MCLKREQEN;
     } else {
         CSCTL6 &= ~MCLKREQEN;
@@ -126,7 +137,10 @@ void hal_clk_config_MCLK(clk_MCLK_src_t source, clk_presc_t prescaler, bool enab
     _lock_registers();
 }
 
-void hal_clk_config_SMCLK(clk_SMCLK_src_t source, clk_presc_t prescaler, bool enable)
+void hal_clk_config_SMCLK(clk_SMCLK_src_t   source,
+                          clk_presc_t       prescaler,
+                          bool              request_enable,
+                          bool              enable)
 {
     _unlock_registers();
 
@@ -137,13 +151,53 @@ void hal_clk_config_SMCLK(clk_SMCLK_src_t source, clk_presc_t prescaler, bool en
     // set prescaler
     CSCTL3 &= ~(uint16_t)(0x7 << 4);
     CSCTL3 |= (uint16_t)(prescaler << 4);
-
+#if 0
     if(enable) {
         CSCTL6 |= SMCLKREQEN;
     } else {
         CSCTL6 &= ~SMCLKREQEN;
     }
+#endif
+    if(enable) {
+        CSCTL4 &= ~SMCLKOFF;
+        if(request_enable){
+            CSCTL6 |= SMCLKREQEN;
+        } else {
+            CSCTL6 &= ~SMCLKREQEN;
+        }
+    } else {
+        CSCTL4 |= SMCLKOFF;
+    }
     _lock_registers();
 }
 
+void hal_clk_output_MCLK(bool enable)
+{
+    PM5CTL0 &= ~LOCKLPM5;
+    if(enable){
+        P4DIR |= 0x01;
+        P4SEL0 |= 0x01;
+        P4SEL1 |= 0x01;
+    } else {
+        P4DIR &= ~0x01;
+        P4SEL0 &= ~0x01;
+        P4SEL1 &= ~0x01;
+    }
+    PM5CTL0 |= LOCKLPM5;
+}
+
+void hal_clk_output_ACLK(bool enable)
+{
+    PM5CTL0 &= ~LOCKLPM5;
+    if(enable){
+        P4DIR |= 0x02;
+        P4SEL0 |= 0x02;
+        P4SEL1 |= 0x02;
+    } else {
+        P4DIR &= ~0x02;
+        P4SEL0 &= ~0x02;
+        P4SEL1 &= ~0x02;
+    }
+    PM5CTL0 |= LOCKLPM5;
+}
 

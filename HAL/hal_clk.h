@@ -73,16 +73,31 @@ typedef enum{
     drive_strenght_MAX = 3
 }drive_strenght_t;
 
-clk_error_t hal_clk_config_LFXT(drive_strenght_t strength ,bool bypass, bool enable);
+clk_error_t hal_clk_config_LFXT(drive_strenght_t    strength,
+                                bool                bypass,
+                                bool                enable);
 
-clk_error_t hal_clk_config_HFXT(drive_strenght_t strength ,bool bypass, bool enable);
+clk_error_t hal_clk_config_HFXT(drive_strenght_t    strength,
+                                bool                bypass,
+                                bool                enable);
 
 void hal_clk_config_DCO(clk_dco_freq_t freq);
 
-void hal_clk_config_ACLK(clk_ACLK_src_t source, clk_presc_t prescaler, bool enable);
+void hal_clk_config_ACLK(clk_ACLK_src_t     source,
+                         clk_presc_t        prescaler,
+                         bool               enable);
 
-void hal_clk_config_MCLK(clk_MCLK_src_t source, clk_presc_t prescaler, bool enable);
+void hal_clk_config_MCLK(clk_MCLK_src_t     source,
+                         clk_presc_t        prescaler,
+                         bool               request_enable);
 
-void hal_clk_config_SMCLK(clk_SMCLK_src_t source, clk_presc_t prescaler, bool enable);
+void hal_clk_config_SMCLK(clk_SMCLK_src_t   source,
+                          clk_presc_t       prescale,
+                          bool              request_enable,
+                          bool              enable);
+
+void hal_clk_output_MCLK(bool enable);
+
+void hal_clk_output_ACLK(bool enable);
 
 #endif /* HAL_HAL_CLK_H_ */
