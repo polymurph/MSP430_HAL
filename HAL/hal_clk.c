@@ -19,7 +19,7 @@ static inline void _unlock_registers()
 static inline void _lock_registers()
 {
     // TODO: find out how to disable write permission
-    CSCTL0 |= CSCTL0_H;
+    //CSCTL0 = 0x00A5;
 }
 
 clk_error_t hal_clk_config_LFXT(drive_strenght_t strength ,bool bypass, bool enable)
@@ -171,7 +171,7 @@ void hal_clk_config_SMCLK(clk_SMCLK_src_t   source,
     _lock_registers();
 }
 
-void hal_clk_output_MCLK(bool enable)
+void hal_clk_output_MCLK_to_GPIO(bool enable)
 {
     PM5CTL0 &= ~LOCKLPM5;
     if(enable){
@@ -186,7 +186,7 @@ void hal_clk_output_MCLK(bool enable)
     PM5CTL0 |= LOCKLPM5;
 }
 
-void hal_clk_output_ACLK(bool enable)
+void hal_clk_output_ACLK_to_GPIO(bool enable)
 {
     PM5CTL0 &= ~LOCKLPM5;
     if(enable){

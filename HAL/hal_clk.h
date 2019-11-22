@@ -97,9 +97,9 @@ void hal_clk_config_SMCLK(clk_SMCLK_src_t   source,
                           bool              enable);
 
 // TODO: find better name
-void hal_clk_output_MCLK(bool enable);
+void hal_clk_output_MCLK_to_GPIO(bool enable);
 
 // TODO: find better name
-void hal_clk_output_ACLK(bool enable);
+void hal_clk_output_ACLK_to_GPIO(bool enable);
 
 #endif /* HAL_HAL_CLK_H_ */
