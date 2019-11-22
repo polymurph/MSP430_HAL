@@ -1,6 +1,8 @@
 #include <msp430.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include "HAL/hal_spi.h"
+#include "HAL/hal_clk.h"
 /**
  * main.c
  */
@@ -22,7 +24,10 @@ int main(void)
     uint8_t i = 0;
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
 	
-	hal_spi_init(spi_mode_MASTER, spi_clk_source_SMCLK, spi_clk_mode_1, 1, true);
+	//hal_clk_config_LFXT(drive_strenght_INCREASED, false, true);
+	//hal_clk_config_ACLK(clk_ACLK_src_LFXT, 1, true);
+
+	hal_spi_init(spi_mode_MASTER, spi_clk_source_ACLK, spi_clk_mode_1, 1, true);
 
 
 	chip_select(true);
