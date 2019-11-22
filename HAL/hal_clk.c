@@ -20,6 +20,7 @@ static inline void _lock_registers()
 {
     // TODO: find out how to disable write permission
     //CSCTL0 = 0x00A5;
+    CSCTL0_H = 0;
 }
 
 clk_error_t hal_clk_config_LFXT(drive_strenght_t strength ,bool bypass, bool enable)
