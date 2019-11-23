@@ -1,8 +1,12 @@
+
 #include <msp430.h>
 #include <stdbool.h>
 #include "HAL/hal_i2c.h"
 
 #define PCF8575_ADDRESS 0b0100000// 0b01001110
+
+#include "HAL/hal_clk.h"
+
 
 void _init_LED();
 void _set_LED(bool state);
@@ -99,7 +103,5 @@ void _init_CLK()
 {
     // unlock registers
     CSCTL0 = 0xA500;
-
-
 
 }
