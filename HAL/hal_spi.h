@@ -46,17 +46,22 @@ bool hal_spi_init(spi_mode_t        mode,
                   spi_clk_source_t  clk_source,
                   spi_clk_mode_t    clk_mode,
                   uint16_t          prescaler,
-                  bool    MSB_first);
+                  bool              MSB_first);
 
-uint8_t hal_spi_trx(uint8_t data);
+uint8_t hal_spi_trx_byte(uint8_t data);
 
-void hal_spi_tx(uint8_t data);
+void hal_spi_tx_byte(uint8_t data);
 
-uint8_t hal_spi_rx(void);
+uint8_t hal_spi_rx_byte(void);
 
-void hal_spi_trx_block(const uint8_t*   txblock,
-                       uint8_t*         rxblock,
-                       uint8_t          len);
+void hal_spi_trx(const uint8_t*   txblock,
+                 uint8_t*         rxblock,
+                 uint8_t          len);
 
+void hal_spi_tx(const uint8_t*   txblock,
+                uint8_t          len);
+
+void hal_spi_rx(uint8_t*   rxblock,
+                uint8_t    len);
 
 #endif /* HAL_HAL_SPI_H_ */

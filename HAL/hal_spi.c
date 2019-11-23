@@ -92,7 +92,7 @@ bool hal_spi_init(spi_mode_t        mode,
     return false;
 }
 
-uint8_t hal_spi_trx(uint8_t data)
+uint8_t hal_spi_trx_byte(uint8_t data)
 {
       UCB0IFG = 0;
       UCB0TXBUF = data;
@@ -103,7 +103,7 @@ uint8_t hal_spi_trx(uint8_t data)
 }
 
 //chip select procedure must be done by user
-void hal_spi_tx(uint8_t data)
+void hal_spi_tx_byte(uint8_t data)
 {
     UCB0IFG = 0;
 
@@ -113,7 +113,7 @@ void hal_spi_tx(uint8_t data)
     //while(UCB0IFG & UCTXIFG); //wait until value is transmitted
 }
 
-uint8_t hal_spi_rx(void)
+uint8_t hal_spi_rx_byte(void)
 {
     UCB0IFG = 0;
     UCB0TXBUF = 0x00;
@@ -123,11 +123,31 @@ uint8_t hal_spi_rx(void)
     return UCB0RXBUF;
 }
 
-void hal_spi_trx_block(const uint8_t* txblock, uint8_t* rxblock, uint8_t len)
+void hal_spi_trx(const uint8_t* txblock, uint8_t* rxblock, uint8_t len)
 {
     uint8_t i = 0;
 
     for(i = 0; i < len; i++){
-        rxblock[i] = hal_spi_trx(txblock[i]);
+        rxblock[i] = hal_spi_trx_byte(txblock[i]);
+    }
+}
+
+void hal_spi_tx(const uint8_t*   txblock,
+                uint8_t          len)
+{
+    uint8_t i = 0;
+
+    for(i = 0; i < len; i++){
+        hal_spi_trx_byte(txblock[i]);
+    }
+}
+
+void hal_spi_rx(uint8_t*   rxblock,
+                uint8_t    len)
+{
+    uint8_t i = 0;
+
+    for(i = 0; i < len; i++){
+        rxblock[i] = hal_spi_trx_byte(0x00);
     }
 }

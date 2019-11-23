@@ -32,16 +32,16 @@ int main(void)
 	hal_clk_output_ACLK_to_GPIO(true);
 	hal_clk_output_MCLK_to_GPIO(true);
 
-	hal_spi_init(spi_mode_MASTER, spi_clk_source_ACLK, spi_clk_mode_1, 2, true);
+	hal_spi_init(spi_mode_MASTER, spi_clk_source_ACLK, spi_clk_mode_3, 2, true);
 
 
 	//chip_select(true);
-	hal_spi_trx(0xAA);
+	hal_spi_trx_byte(0xAA);
 	//chip_select(false);
 
 	while(1)
 	{
-	    hal_spi_tx(0xAA);
+	    hal_spi_tx_byte(0xA5);
 	    for(i = 0; i < 0xFF; i++);
 	}
 
