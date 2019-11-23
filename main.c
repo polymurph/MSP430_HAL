@@ -24,6 +24,14 @@ void chip_select(bool select)
 int main(void)
 {
     uint8_t i = 0;
+
+    uint8_t data[] ={
+                     0xAA,
+                     0x55,
+                     0xA5,
+                     0x5A
+    };
+
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
 	
 	hal_clk_config_MCLK(clk_MCLK_src_LFXT, 0, true);
@@ -32,7 +40,7 @@ int main(void)
 	hal_clk_output_ACLK_to_GPIO(true);
 	hal_clk_output_MCLK_to_GPIO(true);
 
-	hal_spi_init(spi_mode_MASTER, spi_clk_source_ACLK, spi_clk_mode_3, 2, true);
+	hal_spi_init(spi_mode_MASTER, spi_clk_source_ACLK, spi_clk_mode_2, 2, true);
 
 
 	//chip_select(true);
@@ -41,7 +49,7 @@ int main(void)
 
 	while(1)
 	{
-	    hal_spi_tx_byte(0xA5);
+	    hal_spi_tx(data, sizeof(data));
 	    for(i = 0; i < 0xFF; i++);
 	}
 

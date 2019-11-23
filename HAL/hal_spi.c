@@ -50,25 +50,21 @@ bool hal_spi_init(spi_mode_t        mode,
     UCB0CTLW0 |= UCSYNC;
 
     // set master or slave mode
-    //UCB0CTLW0 &= ~UCMST;
     UCB0CTLW0 |= mode;
 
     //MSB or LSB first
-    //UCB0CTLW0 &= ~UCMSB;
     UCB0CTLW0 |= (MSB_first) ? (UCMSB) : (0);
 
     // set clock prescaler
     UCB0BRW = prescaler;
 
     // set clock phase and polarity
-    //UCB0CTLW0 &= ~(UCCKPL | UCCKPH);
     UCB0CTLW0 |= clk_mode;
 
     // set 8 bit mode
     UCB0CTLW0 &= ~UC7BIT;
 
     //set clock source
-    //UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
     if(mode){
         // master mode
         if(clk_source == spi_clk_source_UC0CLK){
@@ -98,7 +94,6 @@ uint8_t hal_spi_trx_byte(uint8_t data)
       UCB0TXBUF = data;
       // poll for receive completion
       while(UCB0IFG & UCRXIFG);
-
       return UCB0RXBUF;
 }
 
@@ -106,11 +101,9 @@ uint8_t hal_spi_trx_byte(uint8_t data)
 void hal_spi_tx_byte(uint8_t data)
 {
     UCB0IFG = 0;
-
-    UCB0TXBUF = data;         //transmit value
-
+    // transmit
+    UCB0TXBUF = data;
     while(UCB0STATW & UCBUSY);
-    //while(UCB0IFG & UCTXIFG); //wait until value is transmitted
 }
 
 uint8_t hal_spi_rx_byte(void)
@@ -118,8 +111,6 @@ uint8_t hal_spi_rx_byte(void)
     UCB0IFG = 0;
     UCB0TXBUF = 0x00;
     while(UCB0STATW & UCBUSY);
-    //while(UCB0IFG & UCRXIFG);//data received?
-
     return UCB0RXBUF;
 }
 
