@@ -20,7 +20,6 @@ typedef enum{
 
 }clk_error_t;
 
-// find out all possible clk sources
 typedef enum{
     clk_ACLK_src_LFXT,
     clk_ACLK_src_VLO,
@@ -45,13 +44,14 @@ typedef enum{
     clk_SMCLK_src_HFXT
 }clk_SMCLK_src_t;
 
+// TODO: find problem with 16/21/24 MHz (all not working)
 typedef enum{
     clk_dco_freq_1_MHz = 0,
     clk_dco_freq_2_67_MHz = DCOFSEL0,
-    clk_dco_freq_3_33_MHz = DCOFSEL1,
+    clk_dco_freq_3_5_MHz = DCOFSEL1,
     clk_dco_freq_4_MHz = DCOFSEL1 | DCOFSEL0,
     clk_dco_freq_5_33_MHz = DCOFSEL2,
-    clk_dco_freq_6_67_MHz = DCOFSEL2 | DCOFSEL0,
+    clk_dco_freq_7_MHz = DCOFSEL2 | DCOFSEL0,
     clk_dco_freq_8_MHz = DCOFSEL2 | DCOFSEL1,
     clk_dco_freq_16_MHz = DCOFSEL2 | DCORSEL,
     clk_dco_freq_21_MHz = DCOFSEL2 | DCOFSEL0 | DCORSEL,
@@ -73,16 +73,31 @@ typedef enum{
     drive_strenght_MAX = 3
 }drive_strenght_t;
 
-clk_error_t hal_clk_config_LFXT(drive_strenght_t strength ,bool bypass, bool enable);
+clk_error_t hal_clk_config_LFXT(drive_strenght_t    strength,
+                                bool                bypass,
+                                bool                enable);
 
-clk_error_t hal_clk_config_HFXT(drive_strenght_t strength ,bool bypass, bool enable);
+clk_error_t hal_clk_config_HFXT(drive_strenght_t    strength,
+                                bool                bypass,
+                                bool                enable);
 
 void hal_clk_config_DCO(clk_dco_freq_t freq);
 
-void hal_clk_config_ACLK(clk_ACLK_src_t source, clk_presc_t prescaler, bool enable);
+void hal_clk_config_ACLK(clk_ACLK_src_t     source,
+                         clk_presc_t        prescaler,
+                         bool               enable);
 
-void hal_clk_config_MCLK(clk_MCLK_src_t source, clk_presc_t prescaler, bool enable);
+void hal_clk_config_MCLK(clk_MCLK_src_t     source,
+                         clk_presc_t        prescaler,
+                         bool               request_enable);
 
-void hal_clk_config_SMCLK(clk_SMCLK_src_t source, clk_presc_t prescaler, bool enable);
+void hal_clk_config_SMCLK(clk_SMCLK_src_t   source,
+                          clk_presc_t       prescale,
+                          bool              request_enable,
+                          bool              enable);
+
+void hal_clk_output_MCLK_to_GPIO(bool enable);
+
+void hal_clk_output_ACLK_to_GPIO(bool enable);
 
 #endif /* HAL_HAL_CLK_H_ */

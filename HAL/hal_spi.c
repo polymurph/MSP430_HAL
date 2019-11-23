@@ -12,7 +12,7 @@
 
 static inline void _gpio_setup(void)
 {
-    PM5CTL0 &= LOCKLPM5;
+    PM5CTL0 &= ~LOCKLPM5;
     // MOSI
     P1DIR |= 0x40;
     P1SEL0 |= 0x40;
@@ -27,48 +27,62 @@ static inline void _gpio_setup(void)
     P1DIR |= 0x10;
     P1SEL0 |= 0x10;
     P1SEL1 &= ~0x10;
+
+    PM5CTL0 |= LOCKLPM5;
 }
 
 bool hal_spi_init(spi_mode_t        mode,
                   spi_clk_source_t  clk_source,
                   spi_clk_mode_t    clk_mode,
                   uint16_t          prescaler,
-                  bool    MSB_first)
+                  bool              MSB_first)
 {
     // enable register modification
     UCB0CTLW0 |= UCSWRST;
 
+    // reset entire register
+    UCB0CTLW0 &= ~0xFFFE;
+
     // 3 pin spi mode
     UCB0CTLW0 &= ~(UCMODE0 | UCMODE1);
 
+    // set synchronous mode
+    UCB0CTLW0 |= UCSYNC;
+
     // set master or slave mode
-    UCB0CTLW0 &= ~UCMST;
+    //UCB0CTLW0 &= ~UCMST;
     UCB0CTLW0 |= mode;
 
     //MSB or LSB first
-    UCB0CTLW0 &= ~UCMSB;
+    //UCB0CTLW0 &= ~UCMSB;
     UCB0CTLW0 |= (MSB_first) ? (UCMSB) : (0);
 
     // set clock prescaler
     UCB0BRW = prescaler;
 
     // set clock phase and polarity
-    UCB0CTLW0 &= ~(UCCKPL | UCCKPH);
+    //UCB0CTLW0 &= ~(UCCKPL | UCCKPH);
     UCB0CTLW0 |= clk_mode;
 
     // set 8 bit mode
     UCB0CTLW0 &= ~UC7BIT;
 
     //set clock source
-    UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
+    //UCB0CTLW0 &= ~(UCSSEL0 | UCSSEL1);
     if(mode){
-        // slave mode
-        if(clk_source != spi_clk_source_UC0CLK)return true;
-             UCB0CTLW0 |= clk_source;
-    } else {
         // master mode
-        if(clk_source == spi_clk_source_UC0CLK)return true;
-             UCB0CTLW0 |= clk_source;
+        if(clk_source == spi_clk_source_UC0CLK){
+            UCB0CTLW0 &= ~UCSWRST;
+            return true;
+        }
+         UCB0CTLW0 |= clk_source;
+    } else {
+         // slave mode
+         if(clk_source != spi_clk_source_UC0CLK){
+             UCB0CTLW0 &= ~UCSWRST;
+             return true;
+         }
+         UCB0CTLW0 |= clk_source;
     }
 
     _gpio_setup();
@@ -91,15 +105,20 @@ uint8_t hal_spi_trx(uint8_t data)
 //chip select procedure must be done by user
 void hal_spi_tx(uint8_t data)
 {
+    UCB0IFG = 0;
+
     UCB0TXBUF = data;         //transmit value
-    while(UCB0IFG & UCTXIFG); //wait until value is transmitted
+
+    while(UCB0STATW & UCBUSY);
+    //while(UCB0IFG & UCTXIFG); //wait until value is transmitted
 }
 
 uint8_t hal_spi_rx(void)
 {
     UCB0IFG = 0;
     UCB0TXBUF = 0x00;
-    while(UCB0IFG & UCRXIFG);//data received?
+    while(UCB0STATW & UCBUSY);
+    //while(UCB0IFG & UCRXIFG);//data received?
 
     return UCB0RXBUF;
 }
