@@ -34,21 +34,31 @@ typedef enum{
 }i2c_clk_presc_t;
 
 
-void hal_i2c_init(i2c_mode_t i2c_mode, i2c_clk_src_t source, uint16_t bitrate);
+void hal_i2c_init(i2c_mode_t i2c_   mode,
+                  i2c_clk_src_t     source,
+                  uint16_t          bitrate);
 
 void hal_i2c_setClockSource(i2c_clk_src_t source);
 
 void hal_i2c_setClockPrescaler(uint16_t prescaler);
 
-void hal_i2c_write_Byte(uint8_t address, uint8_t data);
+void hal_i2c_write_Byte(uint8_t     address,
+                        uint8_t     data);
 
-void hal_i2c_write_Register(uint8_t address, uint8_t reg, uint8_t data);
+void hal_i2c_write_Register(uint8_t     address,
+                            uint8_t     reg,
+                            uint8_t     data);
 
-bool hal_i2c_write(uint8_t address, const uint8_t * data, uint8_t len);
+bool hal_i2c_write(uint8_t          address,
+                   const uint8_t *  data,
+                   uint8_t          len);
 
-bool hal_i2c_read_Byte(uint8_t address, uint8_t *byte);
+bool hal_i2c_read_Byte(uint8_t  address,
+                       uint8_t* byte);
 
-void hal_i2c_read(uint8_t address, uint8_t * data, uint8_t len);
+void hal_i2c_read(uint8_t   address,
+                  uint8_t*  data,
+                  uint8_t   len);
 
 
 #endif /* HAL_HAL_I2C_H_ */

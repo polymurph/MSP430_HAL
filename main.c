@@ -2,10 +2,11 @@
 #include <msp430.h>
 #include <stdbool.h>
 #include "HAL/hal_i2c.h"
+#include "HAL/hal_clk.h"
 
 #define PCF8575_ADDRESS 0b0100000// 0b01001110
 
-#include "HAL/hal_clk.h"
+
 
 
 void _init_LED();
@@ -51,7 +52,7 @@ int main(void)
 
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
 	
-	hal_i2c_init(i2c_mode_MASTER, i2c_clk_src_SMCLK, 8);
+	hal_i2c_init(i2c_mode_MASTER, i2c_clk_src_SMCLK, 0);
 
 	hal_i2c_write(PCF8575_ADDRESS,data,sizeof(data));
 

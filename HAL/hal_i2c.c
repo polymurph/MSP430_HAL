@@ -32,13 +32,18 @@ static inline bool _start_sequence(uint8_t address, bool read)
 
     // set read/write mode
     if(read){
+        // read
         UCB1CTLW0 &= ~UCTR;
     } else {
+        // write
         UCB1CTLW0 |= UCTR;
     }
-    UCB1CTLW0 |= UCTXSTT;   // generate start condition
 
-    while(UCB1CTLW0 & UCTXSTT); // wait until slave address has been sent
+    // generate start condition
+    UCB1CTLW0 |= UCTXSTT;
+
+    // wait until slave address has been sent
+    while(UCB1CTLW0 & UCTXSTT);
 
     // TODO: wait for ACK from Slave here?
 
@@ -100,8 +105,31 @@ static inline void _gpio_settup()
 }
 
 
-void hal_i2c_init(i2c_mode_t i2c_mode, i2c_clk_src_t source, uint16_t bitrate)
+void hal_i2c_init(i2c_mode_t        i2c_mode,
+                  i2c_clk_src_t     source,
+                  uint16_t          bitrate)
 {
+    // set reset condition
+    UCB1CTLW0 |= UCSWRST;
+
+    // master/slave mode
+    UCB1CTLW0 |= i2c_mode;
+
+    // synchronous mode
+    UCB1CTLW0 |= UCSYNC;
+
+    // set bitrate
+    UCB0BRW = bitrate;
+
+    _gpio_settup();
+
+    // clear settings
+    UCB1CTLW0 &= 0xFFFE;
+
+
+
+
+#if 0
     // set reset condition
     UCB1CTLW0 |= UCSWRST;
     _gpio_settup();
@@ -129,40 +157,6 @@ void hal_i2c_init(i2c_mode_t i2c_mode, i2c_clk_src_t source, uint16_t bitrate)
     UCB1CTLW1 = UCASTP_2;
 
     // erase reset condition -> release for operation
-    UCB1CTLW0 &= ~UCSWRST;
-
-#if 0
-    // settup GPIOs for i2c mode
-    P4DIR &= ~0x03; // SDA and SCL as output
-    P4SEL0 &= ~0x03;
-    P4SEL1 |= 0x03;
-
-    // reset settings
-    UCB1CTLW0 = 0x0000;
-
-    // unlock register
-    UCB1CTLW0 |= UCSWRST;
-
-    // set eUSCI_B module to i2c functionality
-    UCB1CTLW0 |= UCMODE_3;
-
-    // synchronous mode
-    UCB1CTLW0 |= UCSYNC;
-
-    // set master or slave mode
-    UCB1CTLW0 &= ~UCMST;
-    UCB1CTLW0 |= i2c_mode;
-
-
-
-    // select clock source
-    UCB1CTLW0 &= ~(UCSSEL0 | UCSSEL1);
-    UCB1CTLW0 |= source;
-
-    // set prescaler
-    UCB1BRW = prescaler;
-
-    // lock register
     UCB1CTLW0 &= ~UCSWRST;
 #endif
 }
