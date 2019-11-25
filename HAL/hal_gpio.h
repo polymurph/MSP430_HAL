@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "msp..
+#include "msp430fr6989.h"
 
 
 typedef enum{
@@ -23,14 +23,14 @@ typedef enum{
     pin_mode_SECCONDARY_FUNCTION,
     pin_mode_TERTIARY_FUNCTION
     
-    
 }pin_mode_t;
 
 
-void hal_gpio_pin_init(pin_mode_t mode,)
+void hal_gpio_pin_init(pin_mode_t mode,);
 
-void hal_gpio_pin_set(pin,bool logic_level)
+void hal_gpio_pin_set(pin,bool logic_level);
 
+void hal_gpio_pin_get();
 
 
 #endif /* HAL_HAL_GPIO_H_ */
