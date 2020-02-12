@@ -11,6 +11,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+static inline void _initiate_start_condition();
+
+static inline void _initiate_stop_condition();
+
 static inline void _stop_sequence()
 {
     UCB1CTLW0 |= UCTXSTP;
@@ -95,6 +99,15 @@ static inline uint8_t _read_rx_buf()
 
 static inline void _gpio_settup()
 {
+
+    // gpios settup for i2c functionality
+    // P1.6 SDA
+    // P1.7 SCL
+    PM5CTL0 &= ~LOCKLPM5;
+    P1SEL0 |= 0xC0;
+    P1SEL1 &= ~0xC0;
+    PM5CTL0 |= LOCKLPM5;
+#ifdef old
     PM5CTL0 &= ~LOCKLPM5;
 
     // settup GPIOs for i2c mode
@@ -102,6 +115,7 @@ static inline void _gpio_settup()
     //P4SEL0 &= ~0x03;
     P4SEL0 |= 0x03;
     P4SEL1 |= 0x03;
+#endif // old
 }
 
 
@@ -109,6 +123,41 @@ void hal_i2c_init(i2c_mode_t        i2c_mode,
                   i2c_clk_src_t     source,
                   uint16_t          bitrate)
 {
+
+    // enable register manipulations
+    UCB0CTLW0 |= UCSWRST;
+
+    // 7 bit slave address mode
+    UCB0CTLW0 &= ~UCSLA10;
+
+    // single master mode
+    UCB0CTLW0 &= ~UCMM;
+
+    // set master mode
+    UCB0CTLW0 |= i2c_mode;
+
+    // set i2c mode
+    UCB0CTLW0 |= UCMODE_3;
+
+    // needed for master mode. read 23.3.5.2 Master Mode
+    UCB0CTLW0 &= ~UCSYNC;
+
+    // select SMCLK as clock source
+    UCB0CTLW0 &= ~UCSSEL_3;
+    UCB0CTLW0 |= source;
+
+    // dissable automatic stop generation
+    UCB1CTLW1 &= ~UCASTP_3;
+
+    // clock prescaler
+    UCB0BRW = bitrate;
+
+    _gpio_settup();
+
+    // dissable manipulations to register and enable i2c operation
+    UCB0CTLW0 &= ~UCSWRST;
+
+#ifdef old
     // set reset condition
     UCB1CTLW0 |= UCSWRST;
 
@@ -159,6 +208,7 @@ void hal_i2c_init(i2c_mode_t        i2c_mode,
     // erase reset condition -> release for operation
     UCB1CTLW0 &= ~UCSWRST;
 #endif
+#endif // old
 }
 
 void hal_i2c_setClockSource(i2c_clk_src_t source)
@@ -195,15 +245,49 @@ void hal_i2c_write_Register(uint8_t address, uint8_t reg, uint8_t data)
     _stop_sequence();
 }
 
-bool hal_i2c_write(uint8_t address, const uint8_t * data, uint8_t len)
+uint8_t hal_i2c_write(uint8_t address, const uint8_t * data, uint8_t len)
 {
-    uint8_t i = 0;
-    if(_start_sequence(address, false)) return true;
-    for(i = 0; i < len; i++){
-        if(_write_tx_buf(data[i])) return true;
+    if(len == 0) return i2c_error_DATA_LEN_IS_0;
+
+    // clear old flags
+    UCB0IFG = 0;
+
+    // set slave address
+    UCB0I2CSA = address;
+
+    // setting transmitter mode
+    UCB0CTLW0 |= UCTR;
+
+    _initiate_start_condition();
+
+    // poll for address transmission completion
+    while(UCB0CTLW0 & UCTXSTT);
+
+    // TODO: check for NACK here!
+    if(UCB0IFG & UCNACKIFG) {
+        UCB0IFG &= ~UCNACKIFG;
+        _initiate_stop_condition();
+        return i2c_error_DEVICE_NOT_FOUND;
     }
-    _stop_sequence();
-    return false;
+
+    do{
+        // write data in TX register
+        UCB0TXBUF = *data;
+        data++;
+
+        // polling for transmission completion
+        while(!(UCB0IFG & UCTXIFG) & !(UCB0IFG & UCNACKIFG));
+
+        if(UCB0IFG & UCNACKIFG) {
+            UCB0IFG &= ~UCNACKIFG;
+            _initiate_stop_condition();
+            return i2c_error_RECIVED_NACK;
+        }
+    }while(len--);
+
+    _initiate_stop_condition();
+
+    return i2c_error_NONE;
 }
 
 bool hal_i2c_read_Byte(uint8_t address, uint8_t *byte)
@@ -217,5 +301,24 @@ bool hal_i2c_read_Byte(uint8_t address, uint8_t *byte)
 void hal_i2c_read(uint8_t address, uint8_t * data, uint8_t len)
 {
 
+}
+
+
+//////////
+
+static inline void _initiate_start_condition()
+{
+    // generate start condition
+    UCB0CTLW0 |= UCTXSTT;
+
+    // poll for UCTXIFG0
+    while(!(UCB0IFG & UCTXIFG0));
+}
+
+static inline void _initiate_stop_condition()
+{
+    UCB0CTLW0 |= UCTXSTP;
+    while(UCB0CTLW0 & UCTXSTP);
+    UCB0IFG  &= ~UCTXSTP;
 }
 
